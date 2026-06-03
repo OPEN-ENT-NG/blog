@@ -34,11 +34,15 @@ export const CreatePost = ({ blogId }: CreatePostProps) => {
 
   const disableButtons = createMutation.isPending || publishMutation.isPending;
 
-  const create = async () => {
+  const create = async (withoutNotification?: boolean) => {
     const content = editorRef.current?.getContent('html') as string;
     const title = titleRef.current?.value ?? '';
     if (!content) return;
-    return await createMutation.mutateAsync({ title, content });
+    return await createMutation.mutateAsync({
+      title,
+      content,
+      withoutNotification,
+    });
   };
 
   const handleCancelClick = () => {
@@ -54,9 +58,9 @@ export const CreatePost = ({ blogId }: CreatePostProps) => {
 
   const handlePublishClick = async () => {
     if (blogId && titleRef.current?.value.length !== 0 && !isEmptyContent) {
-      const post = await create();
+      const post = await create(true);
       if (post) {
-        await publishMutation.mutate({
+        await publishMutation.mutateAsync({
           post,
           publishWith: getDefaultPublishKeyword(post.author.userId),
           fromEditor: true,

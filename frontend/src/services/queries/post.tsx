@@ -54,9 +54,15 @@ export const useCreatePost = (blogId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ title, content }: { title: string; content: string }) =>
-      createPost(blogId, title, content),
-    onSuccess: (post: Post) => {
+    mutationFn: ({
+      title,
+      content,
+    }: {
+      title: string;
+      content: string;
+      withoutNotification?: boolean;
+    }) => createPost(blogId, title, content),
+    onSuccess: (post: Post, { withoutNotification }) => {
       // Save the new post in the cache.
       queryClient.setQueryData(postQuery(blogId, post).queryKey, post);
       queryClient.setQueryData(
@@ -65,7 +71,9 @@ export const useCreatePost = (blogId: string) => {
       );
       queryClient.setQueryData(commentListQuery(blogId, post._id).queryKey, []);
 
-      toast.success(t('blog.post.create.success'));
+      if (!withoutNotification) {
+        toast.success(t('blog.post.create.success'));
+      }
       return Promise.all([
         // Publishing a post invalidates some queries.
         queryClient.invalidateQueries({
